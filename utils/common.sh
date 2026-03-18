@@ -261,5 +261,6 @@ sync_files() {
         --exclude='.env' \
         --exclude='uploads/' \
         --exclude='storage/' \
+        --exclude='log/' \
         "$source/" "$dest/"
 }

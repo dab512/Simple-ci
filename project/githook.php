@@ -53,7 +53,7 @@ foreach ($env_paths as $path) {
 }
 
 // --- Логирование ---
-$log_file = __DIR__ . '/storage/webhook.log';
+$log_file = __DIR__ . '/log/webhook.log';
 $log_dir = dirname($log_file);
 if (!is_dir($log_dir)) {
     mkdir($log_dir, 0755, true);
