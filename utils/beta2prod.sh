@@ -78,6 +78,9 @@ header "Синхронизация BETA → PROD"
 info "Копирование файлов..."
 sync_files "$BETA_FOLDER" "$PROD_FOLDER"
 
+# Устанавливаем окружение в манифесте
+set_manifest_env "$PROD_FOLDER" "prod"
+
 # --- Результат ---
 echo ""
 separator

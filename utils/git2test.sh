@@ -51,6 +51,9 @@ if [ "$PHASE2" = true ]; then
     fi
     sync_files "$PROJECT_DIR" "$TEST_FOLDER"
 
+    # Устанавливаем окружение в манифесте
+    set_manifest_env "$TEST_FOLDER" "test"
+
     # Результат
     local_ver=$(read_manifest_version "$PROJECT_DIR")
     deployed_ver=$(read_manifest_version "$TEST_FOLDER")

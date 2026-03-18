@@ -272,6 +272,12 @@ if [ "$STANDALONE" = false ]; then
     _ask "Ветка для деплоя" GIT_BRANCH "main"
 fi
 
+# ── Webhook ──
+_header "GitHub Webhook (автообновление TEST)"
+_info "githook.php на тестовом сервере принимает push-уведомления от GitHub."
+_info "Для защиты нужен секрет (тот же что в настройках Webhook на GitHub)."
+_ask "Webhook Secret (оставьте пустым чтобы пропустить)" WEBHOOK_SECRET ""
+
 # ══════════════════════════════════════════
 #  Сохранение конфигурации
 # ══════════════════════════════════════════
@@ -306,6 +312,9 @@ TEST_DB_PASS="${TEST_DB_PASS}"
 # === Git ===
 GIT_REPO_URL="${GIT_REPO_URL}"
 GIT_BRANCH="${GIT_BRANCH}"
+
+# === Webhook ===
+WEBHOOK_SECRET="${WEBHOOK_SECRET}"
 ENVEOF
 
 _success "Конфигурация сохранена в ${ENV_FILE}"
@@ -327,9 +336,24 @@ echo ""
 
 _header "Первичное развёртывание"
 
+_set_manifest_env() {
+    local folder="$1"
+    local env_name="$2"
+    local manifest="$folder/manifest.json"
+    local today
+    today=$(date +%Y-%m-%d)
+
+    if [ -f "$manifest" ]; then
+        sed -i "s/\"environment\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"environment\": \"${env_name}\"/" "$manifest"
+        sed -i "s/\"date\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"date\": \"${today}\"/" "$manifest"
+    fi
+}
+
 deploy_env() {
     local env_name="$1"
     local folder="$2"
+    local env_lower
+    env_lower=$(echo "$env_name" | tr '[:upper:]' '[:lower:]')
     local status
 
     status=$(_check_folder_status "$folder")
@@ -346,6 +370,16 @@ deploy_env() {
             if _confirm "Развернуть ${env_name} в ${folder}?"; then
                 _info "Копирование файлов проекта..."
                 cp -a "$PROJECT_DIR/." "$folder/"
+
+                # Устанавливаем окружение в манифесте
+                _set_manifest_env "$folder" "$env_lower"
+
+                # На beta и prod удаляем githook.php (вебхук только для test)
+                if [ "$env_lower" != "test" ]; then
+                    rm -f "$folder/githook.php"
+                    _info "githook.php удалён (вебхук только для TEST)"
+                fi
+
                 _success "${env_name} развёрнут в ${folder}"
             else
                 _info "${env_name}: пропущено по запросу."

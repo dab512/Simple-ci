@@ -126,6 +126,9 @@ TEST_DB_PASS="${TEST_DB_PASS}"
 # === Git ===
 GIT_REPO_URL="${GIT_REPO_URL}"
 GIT_BRANCH="${GIT_BRANCH}"
+
+# === Webhook ===
+WEBHOOK_SECRET="${WEBHOOK_SECRET}"
 ENVEOF
     success "Конфигурация сохранена в .env"
 }
@@ -162,9 +165,10 @@ print_env_status() {
             echo -e "  ${YELLOW}●${NC} ${BOLD}${env_name}${NC}  ${domain}  ${folder}  → ${YELLOW}Пустая (готова к установке)${NC}"
             ;;
         has_content)
-            local ver
+            local ver env_val
             ver=$(read_manifest_version "$folder")
-            echo -e "  ${GREEN}●${NC} ${BOLD}${env_name}${NC}  ${domain}  ${folder}  → ${GREEN}Развёрнуто${NC} ${ver}"
+            env_val=$(read_manifest_env "$folder")
+            echo -e "  ${GREEN}●${NC} ${BOLD}${env_name}${NC}  ${domain}  ${folder}  → ${GREEN}Развёрнуто${NC} ${ver} [${env_val}]"
             ;;
     esac
 }
@@ -188,6 +192,43 @@ read_manifest_version() {
     date=$(sed -n 's/.*"date"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest")
 
     echo "v${version:-?} (build ${build:-?}, ${date:-?})"
+}
+
+# read_manifest_env FOLDER
+# Читает поле environment из manifest.json
+read_manifest_env() {
+    local folder="$1"
+    local manifest="$folder/manifest.json"
+
+    if [ ! -f "$manifest" ]; then
+        echo "unknown"
+        return
+    fi
+
+    local env_val
+    env_val=$(sed -n 's/.*"environment"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest")
+    echo "${env_val:-unknown}"
+}
+
+# set_manifest_env FOLDER ENV_NAME
+# Устанавливает поле environment в manifest.json (test/beta/prod)
+# Также обновляет дату
+set_manifest_env() {
+    local folder="$1"
+    local env_name="$2"
+    local manifest="$folder/manifest.json"
+    local today
+    today=$(date +%Y-%m-%d)
+
+    if [ ! -f "$manifest" ]; then
+        warn "manifest.json не найден в ${folder}"
+        return
+    fi
+
+    # Обновляем environment
+    sed -i "s/\"environment\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"environment\": \"${env_name}\"/" "$manifest"
+    # Обновляем дату
+    sed -i "s/\"date\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"date\": \"${today}\"/" "$manifest"
 }
 
 # --- Бэкапы ---

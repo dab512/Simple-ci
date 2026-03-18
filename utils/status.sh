@@ -22,44 +22,45 @@ get_env_data() {
     status=$(check_folder_status "$folder")
 
     if [ "$status" != "has_content" ]; then
-        echo "— — — $status"
+        echo "— — — — $status"
         return
     fi
 
     local manifest="$folder/manifest.json"
     if [ ! -f "$manifest" ]; then
-        echo "— — — no_manifest"
+        echo "— — — — no_manifest"
         return
     fi
 
-    local version build date
+    local version build date env_val
     version=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest")
     build=$(sed -n 's/.*"build"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest")
     date=$(sed -n 's/.*"date"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest")
+    env_val=$(sed -n 's/.*"environment"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest")
 
-    echo "${version:-—} ${build:-—} ${date:-—} has_content"
+    echo "${version:-—} ${build:-—} ${date:-—} ${env_val:-—} has_content"
 }
 
 # Данные источника (project/)
 src_data=$(get_env_data "$PROJECT_DIR")
-read -r SRC_VER SRC_BUILD SRC_DATE SRC_STATUS <<< "$src_data"
+read -r SRC_VER SRC_BUILD SRC_DATE SRC_ENV SRC_STATUS <<< "$src_data"
 
 # Данные окружений
 test_data=$(get_env_data "$TEST_FOLDER")
-read -r TEST_VER TEST_BUILD TEST_DATE TEST_STATUS <<< "$test_data"
+read -r TEST_VER TEST_BUILD TEST_DATE TEST_ENV TEST_STATUS <<< "$test_data"
 
 beta_data=$(get_env_data "$BETA_FOLDER")
-read -r BETA_VER BETA_BUILD BETA_DATE BETA_STATUS <<< "$beta_data"
+read -r BETA_VER BETA_BUILD BETA_DATE BETA_ENV BETA_STATUS <<< "$beta_data"
 
 prod_data=$(get_env_data "$PROD_FOLDER")
-read -r PROD_VER PROD_BUILD PROD_DATE PROD_STATUS <<< "$prod_data"
+read -r PROD_VER PROD_BUILD PROD_DATE PROD_ENV PROD_STATUS <<< "$prod_data"
 
 # --- Таблица ---
 header "Версии окружений"
 
 # Ширина колонок
-printf "${BOLD}  %-10s  %-10s  %-8s  %-12s  %-15s${NC}\n" \
-    "Среда" "Версия" "Билд" "Дата" "Статус"
+printf "${BOLD}  %-10s  %-10s  %-8s  %-12s  %-10s  %-15s${NC}\n" \
+    "Папка" "Версия" "Билд" "Дата" "Окружение" "Статус"
 separator
 
 # Функция вывода строки
@@ -68,8 +69,9 @@ print_row() {
     local version="$2"
     local build="$3"
     local date="$4"
-    local status="$5"
-    local color
+    local env_val="$5"
+    local status="$6"
+    local color status_text
 
     case "$status" in
         has_content)  color="$GREEN"; status_text="Развёрнуто" ;;
@@ -79,14 +81,14 @@ print_row() {
         *)            color="$RED"; status_text="Неизвестно" ;;
     esac
 
-    printf "  %-10s  %-10s  %-8s  %-12s  ${color}%-15s${NC}\n" \
-        "$env_name" "$version" "$build" "$date" "$status_text"
+    printf "  %-10s  %-10s  %-8s  %-12s  %-10s  ${color}%-15s${NC}\n" \
+        "$env_name" "$version" "$build" "$date" "$env_val" "$status_text"
 }
 
-print_row "SOURCE" "$SRC_VER" "$SRC_BUILD" "$SRC_DATE" "$SRC_STATUS"
-print_row "TEST"   "$TEST_VER" "$TEST_BUILD" "$TEST_DATE" "$TEST_STATUS"
-print_row "BETA"   "$BETA_VER" "$BETA_BUILD" "$BETA_DATE" "$BETA_STATUS"
-print_row "PROD"   "$PROD_VER" "$PROD_BUILD" "$PROD_DATE" "$PROD_STATUS"
+print_row "SOURCE" "$SRC_VER" "$SRC_BUILD" "$SRC_DATE" "$SRC_ENV" "$SRC_STATUS"
+print_row "TEST"   "$TEST_VER" "$TEST_BUILD" "$TEST_DATE" "$TEST_ENV" "$TEST_STATUS"
+print_row "BETA"   "$BETA_VER" "$BETA_BUILD" "$BETA_DATE" "$BETA_ENV" "$BETA_STATUS"
+print_row "PROD"   "$PROD_VER" "$PROD_BUILD" "$PROD_DATE" "$PROD_ENV" "$PROD_STATUS"
 
 echo ""
 

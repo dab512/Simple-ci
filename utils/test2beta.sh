@@ -65,6 +65,9 @@ header "Синхронизация TEST → BETA"
 info "Копирование файлов..."
 sync_files "$TEST_FOLDER" "$BETA_FOLDER"
 
+# Устанавливаем окружение в манифесте
+set_manifest_env "$BETA_FOLDER" "beta"
+
 # --- Результат ---
 echo ""
 separator

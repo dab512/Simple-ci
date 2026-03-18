@@ -2,5 +2,6 @@
   "version": "1.0.0",
   "build": "001",
   "date": "2026-03-18",
+  "environment": "source",
   "description": "Initial release"
 }
