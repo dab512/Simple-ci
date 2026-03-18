@@ -5,19 +5,21 @@
 
 ## Быстрый старт
 
-### Вариант 1: Автономная установка (без клонирования)
+### Вариант 1: Автономная установка (одна команда)
 
-Скачайте `install.sh` и запустите — он сам спросит URL репозитория и клонирует его:
+Скопируйте и вставьте в терминал — скрипт скачается во временную папку и запустится:
 
 ```bash
-# Скачать установщик
-curl -O https://raw.githubusercontent.com/<user>/<repo>/main/utils/install.sh
-# или
-wget https://raw.githubusercontent.com/<user>/<repo>/main/utils/install.sh
-
-# Запустить
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/utils/install.sh -o /tmp/simple-ci-install.sh && bash /tmp/simple-ci-install.sh
 ```
+
+Или через `wget`:
+
+```bash
+wget -qO /tmp/simple-ci-install.sh https://raw.githubusercontent.com/<user>/<repo>/main/utils/install.sh && bash /tmp/simple-ci-install.sh
+```
+
+> Замените `<user>/<repo>` на ваш GitHub-путь, например `myteam/myproject`.
 
 Скрипт:
 1. Спросит URL вашего git-репозитория и ветку
