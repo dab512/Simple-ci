@@ -260,7 +260,6 @@ sync_files() {
         --exclude='config.*' \
         --exclude='.env' \
         --exclude='uploads/' \
-        --exclude='storage/' \
         --exclude='log/' \
         "$source/" "$dest/"
 }
